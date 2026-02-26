@@ -6,6 +6,12 @@ public class Main {
         Thread producerThread = new Thread(producer, "producer-1-thread");
         producerThread.start();
 
+
+        //trying with one Local Worker 
+        LocalWorker localWorker = new LocalWorker("lw-1", repository);
+        Thread localWorkerThread = new Thread(localWorker, "lw1-thread");
+        localWorkerThread.start();
+
         try {
             // Let the producer publish a few jobs.
             Thread.sleep(25_000L);
