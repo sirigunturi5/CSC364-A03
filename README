@@ -1,0 +1,64 @@
+System Story: 
+
+Producers:
+    - run on its won thread - create one worker per CPU core
+    - generates Jobs consisting of arithmitic operations with randomly generated integers
+    - agree that + is 1, - is 2, * is 3 and / is 4
+    - sleep 10 seconds
+
+LocalWorker:
+    - runs on its own thread - create one worker per CPU core
+    - eah worker repeatedly takes a job and "solves" it, then gets paid 1 coin.
+    - sleep 10 seconds
+
+JobRepository: 
+    - a fixed-capacity job buffer of size NCPU, protected with semaphores and a ReentrantLock
+    - use the classic bounded-buffer pattern
+        - empty slots semaphore starts at capacity
+        - available items semaphore starts at 0
+        - a reentrant lock protects the queue itself
+    - put(job)
+        1. EmptySlots.acquire()
+        2. Lock -> enqueue
+        3. Unlock
+        4. AvailableItems.release()
+    - take()
+        1. AvailableItems.acquire()
+        2. Lock -> dequeue
+        3. Unlock
+        4. EmptySlots.release()
+Treasury: 
+    - the treasury rewards 1 coin for each completed job, independent of which worker solved it.
+    - the treasury has a limited budget. 
+    - initial balance will be set to 1,000 coins
+    - Producer deposits 2 coins per job into the treasury
+    - When job is completed: 2 coins is paid to the solver (Worker or Outsourcer)
+    - Outsourcer sent 1 coin to external solvers after receiving the job done.
+    - Can an outsourcer "make more money" by processing more jobs per minute?
+Outsourcer (contractor):
+    - also consumes jobs from the job repository
+    - pays 1 coin to external solvers for each job completed
+    - forwards the job to an external solver and wait for the result
+    - sleep 2 seconds
+    - how will the hiring process work?
+
+What is a Pull Model? Workers request work. Outsourcer's respond, and workers control flow.
+    1. Work Request Topic
+    2. Outsourcer maintains job queue 
+        - subscribes to request topic
+        - internal queue
+        - assigns jobs when requested
+    3. Workers pull jobs from the queue
+        - Outsourcer maintains Map<JobId, WorkerId> inFlight
+        - if no result within timeout -> reassign
+
+Assignment Requirements:
+    - Implement a system as described include
+        - Producer
+        - Buffer (Repository) - Semaphores + Lock
+        - Consumer aka Local Worker
+        - Outsourcer (Publisher + Subsciber + Timer + NoteTaker) + any helpers necessary
+    - Implement anothe system for 
+        - Remote Worker(Publisher + Subscriber + Solver)
+    - Connect both systems using an MQTT broker - How many topics are we going to need?
+    - Implement a Pull Model
