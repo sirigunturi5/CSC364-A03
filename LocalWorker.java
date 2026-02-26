@@ -1,14 +1,13 @@
-import java.util.concurrent.atomic.AtomicInteger;
-
 public class LocalWorker implements Runnable {
     private static final long WORKER_SLEEP_MS = 10_000L;
 
     private final String workerName;
     private final JobRepository<Job> repository;
+    private final Treasury treasury;
     private int moneyCount;
-    private boolean running;
+    private volatile boolean running;
 
-    public LocalWorker(String workerName, JobRepository<Job> repository) {
+    public LocalWorker(String workerName, JobRepository<Job> repository, Treasury treasury) {
         if (workerName == null || workerName.isBlank()) {
             throw new IllegalArgumentException("Worker name cannot be blank");
         }
@@ -18,6 +17,7 @@ public class LocalWorker implements Runnable {
 
         this.workerName = workerName;
         this.repository = repository;
+        this.treasury = treasury;
         this.moneyCount = 0;
         this.running = true;
     }
@@ -28,14 +28,21 @@ public class LocalWorker implements Runnable {
             try {
                 Job job = repository.take();
                 double result = solve(job);
-                int updatedMoney = moneyCount + 1;
-                this.moneyCount += 1;
+                
+                if(treasury.pay(job.getId(), "local")){
+                    moneyCount += 2;
+                }
+                else{
+                    throw new IllegalArgumentException("Local Worker failed to solve job");
+                }
 
                 System.out.println("[" + workerName + "] solved job #" + job.getId()
                         + " -> " + formatExpression(job) + " = " + result
-                        + " | moneyCount=" + updatedMoney);
+                        + " | moneyCount=" + moneyCount);
 
                 Thread.sleep(WORKER_SLEEP_MS);
+            } catch (IllegalArgumentException e) {
+                System.out.println("Error: " + e.getMessage());                 
             } catch (InterruptedException interruptedException) {
                 Thread.currentThread().interrupt();
                 running = false;

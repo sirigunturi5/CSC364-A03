@@ -1,6 +1,7 @@
 public class Main {
     public static void main(String[] args) {
         JobRepository<Job> repository = new JobRepository<>();
+        Treasury treasury = new Treasury();
         Producer producer = new Producer("producer-1", repository);
 
         Thread producerThread = new Thread(producer, "producer-1-thread");
@@ -8,7 +9,7 @@ public class Main {
 
 
         //trying with one Local Worker 
-        LocalWorker localWorker = new LocalWorker("lw-1", repository);
+        LocalWorker localWorker = new LocalWorker("lw-1", repository, treasury);
         Thread localWorkerThread = new Thread(localWorker, "lw1-thread");
         localWorkerThread.start();
 
