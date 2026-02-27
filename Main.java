@@ -3,10 +3,18 @@ public class Main {
         JobRepository<Job> repository = new JobRepository<>();
         Treasury treasury = new Treasury();
         Producer producer = new Producer("producer-1", repository);
+       
 
         Thread producerThread = new Thread(producer, "producer-1-thread");
         producerThread.start();
 
+        Outsourcer outsourcer = new Outsourcer(repository, treasury);
+        Thread outsourcerThread = new Thread(() -> {
+            try { outsourcer.start(); }
+            catch (Exception e) { e.printStackTrace(); }
+        }, "outsourcer-thread");
+    
+        outsourcerThread.start();
 
         //trying with one Local Worker 
         LocalWorker localWorker = new LocalWorker("lw-1", repository, treasury);

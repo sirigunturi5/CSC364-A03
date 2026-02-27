@@ -29,7 +29,7 @@ public class LocalWorker implements Runnable {
                 Job job = repository.take();
                 double result = solve(job);
                 
-                if(treasury.pay(job.getId(), "local")){
+                if(treasury.pay(job.getId())){
                     moneyCount += 2;
                 }
                 else{

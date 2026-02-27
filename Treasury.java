@@ -21,13 +21,11 @@ public class Treasury {
         balance += amount;
     }
 
-    public synchronized boolean pay(long jobId, String solverType) {
+    public synchronized boolean pay(long jobId) {
         if (jobId <= 0) {
             throw new IllegalArgumentException("jobId must be > 0");
         }
-        if (solverType == null || solverType.isBlank()) {
-            throw new IllegalArgumentException("solverType cannot be blank");
-        }
+    
 
         if (paidJobIds.contains(jobId)) {
             return false;
